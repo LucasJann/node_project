@@ -1,43 +1,30 @@
-const fs = require("fs");
-const path = require("path");
+const db = require("../util/database");
 
-const p = path.join(
-  path.dirname(process.mainModule.filename),
-  "data",
-  "products.json"
-);
-
-const getProductsFromFile = (cb) => {
-  console.log(cb)
-  console.log("Fui executado");
-  fs.readFile(p, (err, fileContent) => {
-    if (err) {
-      cb([]);
-    } else {
-      cb(JSON.parse(fileContent));
-      console.log("Parsed", JSON.parse(fileContent));
-    }
-  });
-};
+const Cart = require("./cart");
 
 module.exports = class Product {
-  constructor(t) {
-    this.title = t;
+  constructor(id, title, imageUrl, description, price) {
+    this.id = id;
+    this.title = title;
+    this.imageUrl = imageUrl;
+    this.description = description;
+    this.price = price;
   }
 
   save() {
-    getProductsFromFile((products) => {
-      console.log("before", products);
-      products.push(this);
-      console.log("after", products);
-      console.log("Stringify", JSON.stringify(products));
-      fs.writeFile(p, JSON.stringify(products), (err) => {
-        console.log(err);
-      });
-    });
+    return db.execute(
+      "INSERT INTO products (title, price, imageUrl, description) VALUES (?,?,?,?)",
+      [this.title, this.price, this.imageUrl, this.description]
+    );
   }
 
-  static fetchAll(cb) {
-    getProductsFromFile(cb);
+  static deleteById(id) {}
+
+  static fetchAll() {
+    return db.execute("SELECT * FROM products");
+  }
+
+  static findById(id) {
+    return db.execute('SELECT * FROM products WHERE products.id = ?',[id])
   }
 };
