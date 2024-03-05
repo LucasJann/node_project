@@ -25,7 +25,6 @@ const userSchema = new Schema({
   },
 });
 
-// Adiciona o método addToCart à instância do schema
 userSchema.methods.addToCart = function (product) {
   const cartProductIndex = this.cart.items.findIndex((cp) => {
     return cp.productId.toString() === product._id.toString();
