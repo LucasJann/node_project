@@ -22,7 +22,7 @@ const store = new MongoDBStore({
 });
 const csrfProtection = csrf();
 
-let randomHash = Math.random().toFixed(8)
+let randomHash = Math.random().toFixed(8);
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -57,6 +57,7 @@ app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
 );
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/images", express.static(path.join(__dirname, "images")));
 app.use(
   session({
     secret: "my secret",
