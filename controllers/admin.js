@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const fileHelper = require("../util/file");
 
 const { validationResult } = require("express-validator");
 
@@ -31,8 +32,8 @@ exports.postAddProduct = (req, res, next) => {
         price: price,
         description: description,
       },
-      errorMessage: 'Attached file is not an image.',
-      validationErrors: []
+      errorMessage: "Attached file is not an image.",
+      validationErrors: [],
     });
   }
   const errors = validationResult(req);
@@ -69,19 +70,19 @@ exports.postAddProduct = (req, res, next) => {
       res.redirect("/admin/products");
     })
     .catch((err) => {
-      return res.status(422).render('admin/edit-product', {
-        pageTitle: 'Add Product',
-        path: '/admin/add-product',
+      return res.status(422).render("admin/edit-product", {
+        pageTitle: "Add Product",
+        path: "/admin/add-product",
         editing: false,
         hasError: true,
         product: {
-            title: title,
-            price: price,
-            description: description
+          title: title,
+          price: price,
+          description: description,
         },
-        errorMessage: 'Attached file is not an image.',
-        validationErrors: []
-    })
+        errorMessage: "Attached file is not an image.",
+        validationErrors: [],
+      });
       // res.redirect('/500');
       const error = new Error(err);
       error.httpStatusCode = 500;
@@ -151,9 +152,10 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
-      console.log(image)
+      console.log(image);
       if (image) {
-        product.imageUrl = image.path
+        fileHelper.deleteFile(product.imageUrl);
+        product.imageUrl = image.path;
       }
       product.imageUrl = updatedImageUrl;
       return product.save().then((result) => {
@@ -188,7 +190,14 @@ exports.getProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteOne({ _id: prodId, userId: req.user._id })
+  Product.findById(prodId)
+    .then((product) => {
+      if (!product) {
+        return next(new Error("Product not found"));
+      }
+      fileHelper.deleteFile(product.imageUrl);
+      return Product.deleteOne({ _id: prodId, userId: req.user._id });
+    })
     .then(() => {
       console.log("DESTROYED PRODUCT");
       res.redirect("/admin/products");
